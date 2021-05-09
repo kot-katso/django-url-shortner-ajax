@@ -1,0 +1,111 @@
+{% extends "partials/base.html" %}
+
+{% block content %}
+
+<div class="container text-center align-items-center justify-content-center" style="margin-top: 5em;">
+
+  <div id="alert-msg"></div>
+  <div class="table-responsive">
+  <table class="table mt-5">
+      <thead style="background-color: #007bff !important; color: white;">
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Actual Url</th>
+          <th scope="col">Hash Link</th>
+          <th scope="col">Go</th>
+          <th scope="col">Edit</th>
+          <th scope="col">Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if urls %}
+          {% for url in urls %}
+              <tr>
+                  <td>{{url.id}}</td>
+                  <td>{{url.actual_url}}</td>
+                  <td>{{url.hash_url}}</td>
+                  <td>
+                    <a href="{{url.hash_url}}" target="_blank" class="btn btn-sm btn-primary">Go</a>
+                  </td>
+                  <td>
+                      <a href="{% url 'edit_url' url.id %}" class="btn btn-sm btn-warning">Edit</a>
+                  </td>
+                  <td>
+                      <a href="#" class="btn del-url-btn btn-sm btn-danger" data-pk-tr="{{url.id}}">Delete</a>
+                  </td>
+              </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+  </table>
+</div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+  $(document).ready(function() {
+  var btn = $(".del-url-btn")
+
+  btn.click(function(e) {
+    var $this = $(this)
+    var del_PK = $(this).attr('data-pk-tr')
+    swal({
+    title: "Are you sure?",
+    text: "Once deleted, you will not be able to recover this imaginary file!",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+
+      $.ajax({
+        headers: {
+          'X-CSRFTOKEN': csrf
+        },
+        url: '/delete/',
+        method: 'POST',
+        data: {
+          pk: del_PK
+        },
+        success: function(data) {
+          if (data.status === true) {
+
+          setTimeout(function() {
+            e.target.parentElement.parentElement.remove()
+
+            // show success message 
+            $("#alert-msg").html(`
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Hey!</strong> ${data.msg}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+            `)
+           }, 100)
+
+             // close the alert msg
+            setTimeout(function(){
+              $(".alert").alert('close')
+            }, 4000)
+
+          }
+        }
+      })
+      // swal("msg", {
+      //   icon: "success",
+      // });
+    } else {
+      // swal("Your imaginary file is safe!");
+    }
+  });
+  })
+
+})
+
+
+</script>
+{% endblock %}
